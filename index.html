@@ -8,20 +8,23 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ChicaMath">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --pink:#ff5da2;
     --purple:#7b2ff7;
-    --orange:#ff9a3c;
-    --bg:#fff5fb;
+    --purple-deep:#5b1fd1;
+    --accent:#2fe6b0;
+    --accent-deep:#1dd6a0;
+    --bg:#f7f4ff;
     --card:#ffffff;
     --ink:#2c1b3d;
     --ink-soft:#8a7b99;
-    --line:#f1e3f4;
-    --green:#22c08a;
+    --line:#ece3fb;
     --radius:22px;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -36,7 +39,7 @@
   h1,h2,h3,.brand,.amount{font-family:'Baloo 2',sans-serif;}
 
   header{
-    background:linear-gradient(135deg,var(--pink),var(--purple));
+    background:linear-gradient(100deg,var(--purple) 35%,var(--accent));
     color:#fff;
     padding:28px 20px 60px;
     border-radius:0 0 32px 32px;
@@ -72,6 +75,12 @@
 
   .categorias{padding:18px 16px 0;}
   .categorias h2{font-size:16px;margin:0 0 10px;color:var(--ink);}
+  .resumen-bar{
+    display:flex;height:16px;border-radius:8px;overflow:hidden;
+    background:var(--line);margin-bottom:14px;
+  }
+  .resumen-bar .seg{height:100%;margin-right:2px;}
+  .resumen-bar .seg:last-child{margin-right:0;}
   .cat-row{
     display:flex;align-items:center;gap:12px;
     background:var(--card);border-radius:16px;padding:12px 14px;margin-bottom:10px;
@@ -83,10 +92,14 @@
     font-size:19px;flex-shrink:0;
   }
   .cat-info{flex:1;min-width:0;}
+  .cat-name-row{display:flex;align-items:center;gap:6px;}
+  .cat-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
   .cat-name{font-weight:700;font-size:14px;}
   .cat-bar{height:6px;border-radius:4px;background:var(--line);margin-top:6px;overflow:hidden;}
-  .cat-bar > div{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--pink),var(--orange));}
-  .cat-amount{font-weight:700;font-size:14px;color:var(--ink);white-space:nowrap;}
+  .cat-bar > div{height:100%;border-radius:4px;}
+  .cat-totales{flex-shrink:0;text-align:right;}
+  .cat-amount{font-weight:700;font-size:14px;color:var(--ink);white-space:nowrap;text-align:right;}
+  .cat-pct{font-weight:600;font-size:11px;color:var(--ink-soft);white-space:nowrap;text-align:right;}
   .empty-cats{color:var(--ink-soft);font-size:14px;text-align:center;padding:24px 0;}
 
   .movimientos{padding:22px 16px 0;}
@@ -103,17 +116,17 @@
   .mov-fecha{color:var(--ink-soft);font-size:11px;}
   .mov-monto{font-weight:700;color:var(--ink);white-space:nowrap;}
   .mov-del{
-    border:none;background:transparent;color:#d68ac2;font-size:18px;
+    border:none;background:transparent;color:#a68bd1;font-size:18px;
     width:26px;height:26px;cursor:pointer;flex-shrink:0;
   }
   .empty-mov{color:var(--ink-soft);font-size:14px;text-align:center;padding:30px 0;}
 
   .fab{
     position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
-    background:linear-gradient(135deg,var(--pink),var(--purple));
-    color:#fff;border:none;border-radius:30px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-deep));
+    color:var(--purple-deep);border:none;border-radius:30px;
     padding:15px 28px;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:16px;
-    box-shadow:0 10px 24px rgba(123,47,247,.35);
+    box-shadow:0 10px 24px rgba(47,230,176,.4);
     display:flex;align-items:center;gap:8px;cursor:pointer;z-index:20;
   }
 
@@ -138,7 +151,7 @@
     cursor:pointer;
   }
   .cat-pick .ic{font-size:20px;display:block;margin-bottom:4px;}
-  .cat-pick.sel{border-color:var(--purple);color:var(--purple);background:#f4ecff;}
+  .cat-pick.sel{border-color:var(--accent-deep);color:var(--accent-deep);background:#e3fbf3;}
   input[type=number],input[type=text],input[type=date]{
     width:100%;border:2px solid var(--line);border-radius:14px;padding:13px 14px;
     font-family:'Quicksand',sans-serif;font-size:16px;background:var(--card);color:var(--ink);
@@ -146,7 +159,7 @@
   input:focus{outline:none;border-color:var(--purple);}
   .save-btn{
     width:100%;border:none;border-radius:16px;padding:15px;
-    background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;
+    background:linear-gradient(135deg,var(--purple),var(--purple-deep));color:#fff;
     font-family:'Baloo 2',sans-serif;font-weight:700;font-size:16px;cursor:pointer;margin-top:6px;
   }
   .close-x{position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;color:var(--ink-soft);cursor:pointer;}
@@ -170,7 +183,8 @@
 </div>
 
 <div class="categorias">
-  <h2>Por categoría</h2>
+  <h2>Resumen por categoría</h2>
+  <div class="resumen-bar" id="resumenBar"></div>
   <div id="catList"></div>
 </div>
 
@@ -209,14 +223,14 @@
 
 <script>
 const CATEGORIAS = [
-  {id:'alquiler',   nombre:'Alquiler',      icon:'🏠', color:'#ffe1ee'},
-  {id:'super',      nombre:'Supermercado',  icon:'🛒', color:'#ffe9d6'},
-  {id:'servicios',  nombre:'Servicios',     icon:'💡', color:'#fff4c2'},
-  {id:'transporte', nombre:'Transporte',    icon:'🚗', color:'#dcf3ff'},
-  {id:'salud',      nombre:'Salud',         icon:'💊', color:'#e2ffe8'},
-  {id:'educacion',  nombre:'Educación',     icon:'📚', color:'#e8e1ff'},
-  {id:'ocio',       nombre:'Ocio',          icon:'🎉', color:'#ffe1f7'},
-  {id:'otros',      nombre:'Otros',         icon:'✨', color:'#f0f0f0'},
+  {id:'alquiler',   nombre:'Alquiler',      icon:'🏠', color:'#ece1ff', bar:'#2a78d6'},
+  {id:'super',      nombre:'Supermercado',  icon:'🛒', color:'#dcf9ef', bar:'#eb6834'},
+  {id:'servicios',  nombre:'Servicios',     icon:'💡', color:'#e6e9ff', bar:'#1baf7a'},
+  {id:'transporte', nombre:'Transporte',    icon:'🚗', color:'#dcf3ff', bar:'#eda100'},
+  {id:'salud',      nombre:'Salud',         icon:'💊', color:'#e2ffe8', bar:'#e87ba4'},
+  {id:'educacion',  nombre:'Educación',     icon:'📚', color:'#e8e1ff', bar:'#008300'},
+  {id:'ocio',       nombre:'Ocio',          icon:'🎉', color:'#d9fff3', bar:'#4a3aa7'},
+  {id:'otros',      nombre:'Otros',         icon:'✨', color:'#f0eefa', bar:'#e34948'},
 ];
 const catById = id => CATEGORIAS.find(c=>c.id===id) || CATEGORIAS[CATEGORIAS.length-1];
 
@@ -246,20 +260,30 @@ function render(){
   const porCat = {};
   delMes.forEach(g => porCat[g.categoria] = (porCat[g.categoria]||0) + g.monto);
   const catList = document.getElementById('catList');
+  const resumenBar = document.getElementById('resumenBar');
   const entradas = Object.entries(porCat).sort((a,b)=>b[1]-a[1]);
   if(entradas.length === 0){
+    resumenBar.innerHTML = '';
     catList.innerHTML = '<div class="empty-cats">Todavía no cargaste gastos este mes 🌱</div>';
   } else {
+    resumenBar.innerHTML = entradas.map(([id,monto])=>{
+      const c = catById(id);
+      const pct = total ? (monto/total*100) : 0;
+      return `<div class="seg" style="width:${pct}%;background:${c.bar}" title="${c.nombre}: ${fmt(monto)}"></div>`;
+    }).join('');
     catList.innerHTML = entradas.map(([id,monto])=>{
       const c = catById(id);
       const pct = total ? Math.round(monto/total*100) : 0;
       return `<div class="cat-row">
         <div class="cat-icon" style="background:${c.color}">${c.icon}</div>
         <div class="cat-info">
-          <div class="cat-name">${c.nombre}</div>
-          <div class="cat-bar"><div style="width:${pct}%"></div></div>
+          <div class="cat-name-row"><span class="cat-dot" style="background:${c.bar}"></span><span class="cat-name">${c.nombre}</span></div>
+          <div class="cat-bar"><div style="width:${pct}%;background:${c.bar}"></div></div>
         </div>
-        <div class="cat-amount">${fmt(monto)}</div>
+        <div class="cat-totales">
+          <div class="cat-amount">${fmt(monto)}</div>
+          <div class="cat-pct">${pct}%</div>
+        </div>
       </div>`;
     }).join('');
   }
