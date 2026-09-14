@@ -54,6 +54,11 @@
   }
   .brand{font-size:26px;font-weight:800;letter-spacing:.5px;margin:0;}
   .brand span{opacity:.85;font-weight:600;font-size:15px;display:block;font-family:'Quicksand',sans-serif;margin-top:2px;}
+  .settings-btn{
+    position:absolute;top:20px;right:18px;z-index:5;
+    width:34px;height:34px;border-radius:50%;border:none;
+    background:rgba(255,255,255,.22);color:#fff;font-size:16px;cursor:pointer;
+  }
 
   .summary-card{
     background:var(--card);
@@ -142,6 +147,7 @@
     box-shadow:0 10px 24px rgba(47,230,176,.4);
     display:flex;align-items:center;gap:8px;cursor:pointer;z-index:20;
   }
+  .fab:has(~ .sheet-overlay.open){display:none;}
 
   .sheet-overlay{
     position:fixed;inset:0;background:rgba(44,27,61,.45);
@@ -152,6 +158,7 @@
     background:var(--bg);width:100%;max-width:480px;
     border-radius:26px 26px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom));
     animation:up .22s ease-out;
+    max-height:88vh;overflow-y:auto;
   }
   @keyframes up{from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1}}
   .sheet h3{margin:0 0 16px;font-size:20px;}
@@ -177,11 +184,19 @@
   }
   .close-x{position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;color:var(--ink-soft);cursor:pointer;}
   .sheet-wrap{position:relative;}
+  .backup-hint{color:var(--ink-soft);font-size:13px;line-height:1.5;margin:0 0 16px;}
+  .backup-textarea{
+    width:100%;min-height:90px;border:2px solid var(--line);border-radius:14px;padding:12px 14px;
+    font-family:'Quicksand',sans-serif;font-size:13px;background:var(--card);color:var(--ink);resize:vertical;
+  }
+  .backup-textarea:focus{outline:none;border-color:var(--purple);}
+  .restore-btn{background:linear-gradient(135deg,var(--accent),var(--accent-deep));color:var(--purple-deep);}
 </style>
 </head>
 <body>
 
 <header>
+  <button class="settings-btn" id="openBackup" aria-label="Respaldo de datos">⚙</button>
   <p class="brand">✨ ChicaMath<span>Tus gastos del hogar, al día</span></p>
 </header>
 
@@ -235,6 +250,26 @@
         <input type="date" id="fechaInput">
       </div>
       <button class="save-btn" id="saveBtn">Guardar gasto</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet-overlay" id="backupOverlay">
+  <div class="sheet">
+    <div class="sheet-wrap">
+      <button class="close-x" id="closeBackup">✕</button>
+      <h3>Respaldo de datos</h3>
+      <p class="backup-hint">Guardá una copia de tus gastos por si cambiás de celular, borrás el navegador o reinstalás la app. Copiá el texto y guardalo en Notas, WhatsApp a vos misma, o donde prefieras.</p>
+      <div class="field">
+        <label>Exportar (copiá este texto)</label>
+        <textarea id="exportBox" class="backup-textarea" readonly></textarea>
+        <button class="save-btn" id="copyBackup" type="button">Copiar respaldo</button>
+      </div>
+      <div class="field" style="margin-top:22px;">
+        <label>Restaurar desde un respaldo</label>
+        <textarea id="importBox" class="backup-textarea" placeholder="Pegá acá el texto de un respaldo anterior"></textarea>
+        <button class="save-btn restore-btn" id="restoreBackup" type="button">Restaurar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -377,6 +412,48 @@ document.getElementById('saveBtn').onclick = () => {
   overlay.classList.remove('open');
   viewDate = new Date(fecha+'T00:00:00');
   render();
+};
+
+const backupOverlay = document.getElementById('backupOverlay');
+const exportBox = document.getElementById('exportBox');
+const BACKUP_PREFIX = 'CHICAMATH_BACKUP_V1:';
+
+document.getElementById('openBackup').onclick = () => {
+  exportBox.value = BACKUP_PREFIX + JSON.stringify(gastos);
+  document.getElementById('importBox').value = '';
+  backupOverlay.classList.add('open');
+};
+document.getElementById('closeBackup').onclick = () => backupOverlay.classList.remove('open');
+backupOverlay.addEventListener('click', e=>{ if(e.target===backupOverlay) backupOverlay.classList.remove('open'); });
+
+document.getElementById('copyBackup').onclick = () => {
+  exportBox.select();
+  exportBox.setSelectionRange(0, 999999);
+  let copiado = false;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(exportBox.value).then(()=>{}).catch(()=>{});
+    copiado = true;
+  } else {
+    try { copiado = document.execCommand('copy'); } catch(e){ copiado = false; }
+  }
+  const btn = document.getElementById('copyBackup');
+  btn.textContent = copiado ? '¡Copiado!' : 'Seleccioná y copiá el texto';
+  setTimeout(()=>{ btn.textContent = 'Copiar respaldo'; }, 2000);
+};
+
+document.getElementById('restoreBackup').onclick = () => {
+  let texto = document.getElementById('importBox').value.trim();
+  if(!texto){ alert('Pegá primero el texto del respaldo'); return; }
+  if(texto.startsWith(BACKUP_PREFIX)) texto = texto.slice(BACKUP_PREFIX.length);
+  let datos;
+  try { datos = JSON.parse(texto); } catch(e){ alert('Ese texto no es un respaldo válido de ChicaMath'); return; }
+  if(!Array.isArray(datos)){ alert('Ese texto no es un respaldo válido de ChicaMath'); return; }
+  if(!confirm(`Esto va a reemplazar tus ${gastos.length} gastos actuales por los ${datos.length} del respaldo. ¿Continuar?`)) return;
+  gastos = datos;
+  guardar();
+  backupOverlay.classList.remove('open');
+  render();
+  alert('¡Listo! Se restauraron tus gastos.');
 };
 
 render();
