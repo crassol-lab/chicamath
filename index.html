@@ -75,6 +75,19 @@
 
   .categorias{padding:18px 16px 0;}
   .categorias h2{font-size:16px;margin:0 0 10px;color:var(--ink);}
+  .toggle-btn{
+    width:100%;border:none;border-radius:16px;
+    background:linear-gradient(135deg,var(--purple),var(--purple-deep));
+    padding:16px 18px;box-shadow:0 6px 18px rgba(91,31,209,.35);
+    display:flex;align-items:center;justify-content:space-between;
+    font-family:'Baloo 2',sans-serif;font-weight:700;font-size:16px;color:#fff;
+    cursor:pointer;
+  }
+  .toggle-btn .chevron{font-size:20px;color:#fff;transition:transform .2s ease;}
+  .toggle-btn.open .chevron{transform:rotate(180deg);}
+  .categorias-content{display:none;margin-top:12px;}
+  .categorias-content.open{display:block;}
+  .movimientos.oculto{display:none;}
   .resumen-bar{
     display:flex;height:16px;border-radius:8px;overflow:hidden;
     background:var(--line);margin-bottom:14px;
@@ -183,12 +196,17 @@
 </div>
 
 <div class="categorias">
-  <h2>Resumen por categoría</h2>
-  <div class="resumen-bar" id="resumenBar"></div>
-  <div id="catList"></div>
+  <button class="toggle-btn" id="toggleResumen">
+    <span>¿En qué gasté?</span>
+    <span class="chevron">⌄</span>
+  </button>
+  <div class="categorias-content" id="categoriasContent">
+    <div class="resumen-bar" id="resumenBar"></div>
+    <div id="catList"></div>
+  </div>
 </div>
 
-<div class="movimientos">
+<div class="movimientos" id="movimientosSection">
   <h2>Movimientos</h2>
   <div id="movList"></div>
 </div>
@@ -223,14 +241,14 @@
 
 <script>
 const CATEGORIAS = [
-  {id:'alquiler',   nombre:'Alquiler',      icon:'🏠', color:'#ece1ff', bar:'#2a78d6'},
-  {id:'super',      nombre:'Supermercado',  icon:'🛒', color:'#dcf9ef', bar:'#eb6834'},
-  {id:'servicios',  nombre:'Servicios',     icon:'💡', color:'#e6e9ff', bar:'#1baf7a'},
-  {id:'transporte', nombre:'Transporte',    icon:'🚗', color:'#dcf3ff', bar:'#eda100'},
-  {id:'salud',      nombre:'Salud',         icon:'💊', color:'#e2ffe8', bar:'#e87ba4'},
-  {id:'educacion',  nombre:'Educación',     icon:'📚', color:'#e8e1ff', bar:'#008300'},
-  {id:'ocio',       nombre:'Ocio',          icon:'🎉', color:'#d9fff3', bar:'#4a3aa7'},
-  {id:'otros',      nombre:'Otros',         icon:'✨', color:'#f0eefa', bar:'#e34948'},
+  {id:'alquiler',   nombre:'Alquiler',      icon:'🏠', color:'#ece1ff', bar:'#5b1fd1'},
+  {id:'super',      nombre:'Supermercado',  icon:'🛒', color:'#dcf9ef', bar:'#17b892'},
+  {id:'servicios',  nombre:'Servicios',     icon:'💡', color:'#e6e9ff', bar:'#8a3df2'},
+  {id:'transporte', nombre:'Transporte',    icon:'🚗', color:'#dcf3ff', bar:'#14b090'},
+  {id:'salud',      nombre:'Salud',         icon:'💊', color:'#e2ffe8', bar:'#5c29b8'},
+  {id:'educacion',  nombre:'Educación',     icon:'📚', color:'#e8e1ff', bar:'#0a7d63'},
+  {id:'ocio',       nombre:'Ocio',          icon:'🎉', color:'#d9fff3', bar:'#a06bf0'},
+  {id:'otros',      nombre:'Otros',         icon:'✨', color:'#f0eefa', bar:'#2ecfa8'},
 ];
 const catById = id => CATEGORIAS.find(c=>c.id===id) || CATEGORIAS[CATEGORIAS.length-1];
 
@@ -307,6 +325,12 @@ function render(){
     }).join('');
   }
 }
+
+document.getElementById('toggleResumen').onclick = () => {
+  document.getElementById('toggleResumen').classList.toggle('open');
+  document.getElementById('categoriasContent').classList.toggle('open');
+  document.getElementById('movimientosSection').classList.toggle('oculto');
+};
 
 document.getElementById('prevMonth').onclick = () => { viewDate.setMonth(viewDate.getMonth()-1); render(); };
 document.getElementById('nextMonth').onclick = () => { viewDate.setMonth(viewDate.getMonth()+1); render(); };
